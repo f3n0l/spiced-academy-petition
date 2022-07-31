@@ -26,7 +26,7 @@ app.post("/", (request, response) => {
     console.log("POST/", request.body);
 
     if (
-        !request.body.first_name || //unknown yet
+        !request.body.first_name ||
         !request.body.last_name ||
         !request.body.signature
     ) {
@@ -40,12 +40,16 @@ app.post("/", (request, response) => {
     )
         .then((newSignature) => {
             console.log("POST /", newSignature);
+
             response.redirect("/thank-you");
         })
         .catch((error) => {
             console.log("POST /", error);
             response.redirect("/");
         });
+});
+app.get("/thank-you", (request, response) => {
+    response.render("thank-you");
 });
 
 app.get("/signatures", (request, response) => {
@@ -56,4 +60,4 @@ app.get("/signatures", (request, response) => {
     });
 });
 
-app.listen(8080, () => console.log("listening to server"));
+app.listen(8081, () => console.log("listening to server"));

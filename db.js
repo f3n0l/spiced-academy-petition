@@ -1,13 +1,3 @@
-/* function createSignature(...) {
-    return db.query(...).then(...);
-}
-
-function getSignatures(...) {
-    return db.query(...).then(...);
-}
-
-module.exports = { createSignature, getSignatures }; */
-
 const spicedPg = require("spiced-pg");
 
 const DATABASE_USER = "postgres";
