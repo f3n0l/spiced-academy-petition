@@ -2,12 +2,10 @@ const spicedPg = require("spiced-pg");
 
 const DATABASE_NAME = "petition";
 const { DATABASE_USER, DATABASE_PASSWORD } = require("./secrets.json");
-/* const { decodeBase64 } = require("bcryptjs");
- */
+
 const db = spicedPg(
     `postgres:${DATABASE_USER}:${DATABASE_PASSWORD}@localhost:5432/${DATABASE_NAME}`
 );
-
 function createSignature({ first_name, last_name, signature }) {
     return db
         .query(
