@@ -8,7 +8,9 @@ app.engine("handlebars", engine());
 app.set("view engine", "handlebars");
 
 //db functions
-const { createSignature, getSignatures } = require("./db");
+const { createSignature, getSignatures, getSignatureById } = require("./db");
+const { SESSION_SECRET } = require("./secrets.json");
+const cookieSession = require("cookie-session");
 
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -18,7 +20,17 @@ app.use(
     })
 );
 
+app.use(
+    cookieSession({
+        secret: SESSION_SECRET,
+        maxAge: 1000 * 60 * 60 * 24 * 14,
+    })
+);
+
 app.get("/", (request, response) => {
+    if (request.session.signature_id) {
+        response.redirect("/signatures");
+    }
     response.render("homepage");
 });
 
@@ -40,7 +52,7 @@ app.post("/", (request, response) => {
     )
         .then((newSignature) => {
             console.log("POST /", newSignature);
-
+            request.session.signature_id = newSignature.id;
             response.redirect("/thank-you");
         })
         .catch((error) => {
@@ -49,7 +61,9 @@ app.post("/", (request, response) => {
         });
 });
 app.get("/thank-you", (request, response) => {
-    response.render("thank-you");
+    getSignatureById(request.session.signature_id).then((signature) =>
+        response.render("thank-you", { signature })
+    );
 });
 
 app.get("/signatures", (request, response) => {
@@ -60,4 +74,9 @@ app.get("/signatures", (request, response) => {
     });
 });
 
-app.listen(8081, () => console.log("listening to server"));
+/* app.use((request, response, next) => {
+    response.setHeader("X-Frame-Options: DENY");
+    next;
+}); */
+
+app.listen(8080, () => console.log("listening to server"));
