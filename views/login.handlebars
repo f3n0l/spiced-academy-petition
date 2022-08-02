@@ -1,0 +1,17 @@
+<h1>Login</h1>
+<form action="/login" method="POST">
+    <input type="email" name="email" required placeholder="Enter Email" />
+    <input
+        type="password"
+        name="password"
+        required
+        placeholder="Enter password"
+    />
+
+    <button>Login</button>
+
+    {{#if error}}
+        <p class="error">{{error}}</p>
+    {{/if}}
+    <p>Don't have an account? <a href="/register"> Register here</a></p>
+</form>
