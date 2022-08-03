@@ -14,6 +14,7 @@ const {
     getSignatureById,
     createUser,
     login,
+    getSignaturesByCity,
 } = require("./db");
 const { SESSION_SECRET } = require("./secrets.json");
 const cookieSession = require("cookie-session");
@@ -38,9 +39,14 @@ app.use((request, response, next) => {
     next();
 });
 
-/////////////////////////////////////////
+// HOMEPAGE
 
 app.get("/", (request, response) => {
+    if (!request.session.user_id) {
+        response.redirect("/login");
+        return;
+    }
+
     if (request.session.signature_id) {
         response.redirect("/signatures");
         return;
@@ -49,18 +55,19 @@ app.get("/", (request, response) => {
 });
 
 app.post("/", (request, response) => {
-    console.log("POST/", request.body);
+    console.log("POST/", request.body, request.session);
+    if (!request.session.user_id) {
+        response.redirect("/login");
+        return;
+    }
 
-    if (
-        !request.body.first_name ||
-        !request.body.last_name ||
-        !request.body.signature
-    ) {
+    if (!request.body.signature) {
         response.render("homepage", { error: "fill all fields" });
+
         return;
     }
     createSignature(
-        request.body
+        { ...request.body, user_id: request.session.user_id }
         /*      {}   ...request.params,
         ...request.query, */
     )
@@ -75,7 +82,7 @@ app.post("/", (request, response) => {
         });
 });
 
-/////////////////////
+//REGISTER
 
 app.get("/register", (request, response) => {
     response.render("register");
@@ -103,7 +110,7 @@ app.post("/register", (request, response) => {
         });
 });
 
-//////////////////////////////
+//THANK YOU
 
 app.get("/thank-you", (request, response) => {
     getSignatureById(request.session.signature_id).then((signature) => {
@@ -123,9 +130,19 @@ app.get("/signatures", (request, response) => {
     });
 });
 
-///////////////////////
+app.get("/signatures/:city", (request, response) => {
+    (foundUser) => {
+        if (!foundUser) {
+            response.redirect("/login");
+            return;
+        }
+        response.render("signaturesByCity", getSignaturesByCity());
+    };
+});
 
-app.post("/login", (request, response) => {
+//LOGIN
+
+app.get("/login", (request, response) => {
     response.render("login");
 });
 
@@ -134,7 +151,7 @@ app.post("/login", (request, response) => {
     login(request.body)
         .then((foundUser) => {
             if (!foundUser) {
-                response.render("login failed", {
+                response.render("login", {
                     error: "Login not successfull",
                 });
                 return;
@@ -148,6 +165,32 @@ app.post("/login", (request, response) => {
                 .status(500)
                 .render("register", { error: "registry error" });
         });
+});
+
+//PROFILE
+
+app.post("/profile", (request, response) => {
+    // not sure
+    if (!request.session.user_id) {
+        response.redirect("/login");
+        return;
+    }
+    createUser(request.session.user_id)
+        .then(() => {
+            response.redirect("/");
+            return;
+        })
+        .catch(() => {
+            response.render("profile", { error: "couldn't create user" });
+        });
+});
+
+app.get("/profile", (request, response) => {
+    if (!request.session.user_id) {
+        response.redirect("/login");
+        return;
+    }
+    response.render("profile");
 });
 
 app.listen(8080, () => console.log("listening to server"));

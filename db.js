@@ -6,20 +6,43 @@ const { DATABASE_USER, DATABASE_PASSWORD } = require("./secrets.json");
 const db = spicedPg(
     `postgres:${DATABASE_USER}:${DATABASE_PASSWORD}@localhost:5432/${DATABASE_NAME}`
 );
-function createSignature({ first_name, last_name, signature }) {
+function createSignature({ user_id, signature }) {
     return db
         .query(
             `INSERT INTO signatures 
-            (first_name, last_name, signature) 
-            VALUES ($1, $2, $3) 
+            (user_id, signature) 
+            VALUES ($1, $2) 
             RETURNING *`,
-            [first_name, last_name, signature]
+            [user_id, signature]
         )
         .then((result) => result.rows[0]);
 }
 
 function getSignatures() {
-    return db.query("SELECT * FROM signatures").then((result) => result.rows);
+    return db
+        .query(
+            `
+        SELECT * FROM users
+        JOIN signatures ON signatures.user_id = users.id
+        FULL JOIN user_profiles ON user_profiles.user_id = users.id
+        WHERE signatures.signature IS NOT NULL
+    `
+        )
+        .then((result) => result.rows);
+}
+
+function getSignaturesByCity(city) {
+    return db
+        .query(
+            `
+    SELECT * FROM users
+    JOIN signatures ON signatures.user_id = users.id
+    FULL JOIN user_profiles ON user_profiles.user_id = users.id
+    WHERE signatures.signature IS NOT NULL
+    AND user_profiles.city ILIKE $1`,
+            [city]
+        )
+        .then((result) => result.rows);
 }
 
 function getSignatureById(id) {
@@ -42,6 +65,20 @@ function login({ email, password }) {
         });
     });
 }
+
+function createProfile({ user_id, age, city, homepage }) {
+    return db
+        .query(
+            `INSERT INTO user_profiles
+    (user_id, age, city, homepage)
+    VALUES ($1, $2, $3, $4)
+    RETURNING *`,
+            [user_id, age, city, homepage]
+        )
+        .then((result) => result.rows[0]);
+}
+
+//double profile
 
 function getUserByEmail(email) {
     return db
@@ -69,4 +106,6 @@ module.exports = {
     getSignatureById,
     login,
     createUser,
+    getSignaturesByCity,
+    createProfile,
 };

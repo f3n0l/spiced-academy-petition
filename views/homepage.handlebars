@@ -1,11 +1,19 @@
 <h1> Super important Petition</h1>
+
+<p>
+    very important reason to sign this utmost important petition. we will not
+    stop until everyone signed thx
+</p>
 {{#if error}}
     <p class="error">{{error}}</p>
 {{/if}}
 
-{{! <form action="/" method="POST">
-    <input name="first_name" required placeholder="First Name" />
-    <input name="last_name" required placeholder="Last Name" />
-    <input type="hidden" name="signature" value="data:image/png;base64,hello" />
+<img src="/pictures/Spirals.png" />
+
+<form action="/" method="POST">
+    <input id="sign_data" type="hidden" name="signature" />
+    <canvas id="signature" width="400" height="400"></canvas>
     <button>Sign petition</button>
-</form> }}
+</form>
+
+<script src="/canvas.js"></script>
