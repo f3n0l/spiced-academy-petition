@@ -15,6 +15,11 @@ const {
     createUser,
     login,
     getSignaturesByCity,
+    updateUser,
+    upsertUserProfile,
+    getUserInfo,
+    createProfile,
+    deleteSignature
 } = require("./db");
 const { SESSION_SECRET } = require("./secrets.json");
 const cookieSession = require("cookie-session");
@@ -43,12 +48,12 @@ app.use((request, response, next) => {
 
 app.get("/", (request, response) => {
     if (!request.session.user_id) {
-        response.redirect("/login");
+        response.redirect("/register");
         return;
     }
 
     if (request.session.signature_id) {
-        response.redirect("/signatures");
+        response.redirect("/thank-you");
         return;
     }
     response.render("homepage");
@@ -85,6 +90,10 @@ app.post("/", (request, response) => {
 //REGISTER
 
 app.get("/register", (request, response) => {
+    if (request.session.user_id) {
+        response.redirect("/");
+        return;
+    }
     response.render("register");
 });
 
@@ -114,6 +123,11 @@ app.post("/register", (request, response) => {
 
 app.get("/thank-you", (request, response) => {
     getSignatureById(request.session.signature_id).then((signature) => {
+        if (!request.session.user_id) {
+            response.redirect("/login");
+            return;
+        }
+
         if (!signature) {
             response.redirect("/");
             return;
@@ -122,7 +136,7 @@ app.get("/thank-you", (request, response) => {
     });
 });
 
-app.get("/signatures", (request, response) => {
+/* app.get("/signatures", (request, response) => {
     getSignatures().then((signatures) => {
         response.render("signatures", {
             signatures,
@@ -132,13 +146,17 @@ app.get("/signatures", (request, response) => {
 
 app.get("/signatures/:city", (request, response) => {
     (foundUser) => {
-        if (!foundUser) {
+        if (!request.session.user_id) {
             response.redirect("/login");
+            return;
+        }
+        if (!signature) {
+            response.redirect("/");
             return;
         }
         response.render("signaturesByCity", getSignaturesByCity());
     };
-});
+}); */
 
 //LOGIN
 
@@ -175,7 +193,7 @@ app.post("/profile", (request, response) => {
         response.redirect("/login");
         return;
     }
-    createUser(request.session.user_id)
+    createProfile(request.session.user_id) ///(change)
         .then(() => {
             response.redirect("/");
             return;
@@ -191,6 +209,46 @@ app.get("/profile", (request, response) => {
         return;
     }
     response.render("profile");
+});
+
+// EDIT PROFILE
+
+app.get("/profile/edit", (request, response) => {
+    if (!request.session.user_id) {
+        response.redirect("/login");
+        return;
+    }
+    const user_id = request.session.user_id;
+    getUserInfo(user_id).then((info) => {
+        response.render("editProfile", { user, profile });
+    });
+});
+
+app.post("/profile/edit", (request, response) => {
+    if (!request.session.user_id) {
+        response.redirect("/login");
+        return;
+    }
+    updateUser({ user_id: request.session.user_id, ...request.body }).then(
+        (updateUser) => {
+            upsertUserProfile({
+                user_id: request.session.user_id,
+                ...request.body,
+            });
+        }
+    );
+});
+
+//
+
+app.post("/deletesignature", (request, response) => {
+    deleteSignature (request.session.signature = null;
+    response.redirect("/");
+});
+
+app.post("/logout", (request, response) => {
+    request.session = null;
+    response.redirect("/login");
 });
 
 app.listen(8080, () => console.log("listening to server"));

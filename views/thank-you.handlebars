@@ -1,3 +1,10 @@
 <h1>Thanks for signing!</h1>
-
+{{log signature}}
+<img src="{{signature.signature}}" />
 <p><a href="/signatures">See who already signed</a></p>
+<p><a href="/profile/edit">Edit Profile</a></p>
+<form action="/deletesignature" method="POST" id="deletesignature">
+    <button type="submit" class="action">Delete Signature</button></form>
+
+<form action="/logout" method="POST">
+    <button type="submit" class="action">Logout</button></form>

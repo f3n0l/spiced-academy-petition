@@ -57,12 +57,14 @@ function login({ email, password }) {
             console.log("Email not found");
             return null;
         }
-        bcrypt.compare(password, foundUser.password_hash).then((match) => {
-            if (match) {
-                return foundUser;
-            }
-            return null;
-        });
+        return bcrypt
+            .compare(password, foundUser.password_hash)
+            .then((match) => {
+                if (match) {
+                    return foundUser;
+                }
+                return null;
+            });
     });
 }
 
@@ -100,6 +102,44 @@ function createUser({ first_name, last_name, email, password }) {
     });
 }
 
+function getUserInfo(user_id) {
+    return db
+        .query(
+            `
+        SELECT users.first_name, users.last_name, users.email, user_profiles.*
+        FROM users
+        FULL JOIN user_profiles
+        ON user_profiles.user_id = users.id
+        WHERE  $1
+        `,
+            [user_id]
+        )
+        .then((result) => result.rows[0]);
+}
+
+function updateUser({ user_id, first_name, last_name, email }) {
+    return db
+        .query(
+            "UPDATE users SET first_name= $1, last_name = $2, email = $3 WHERE id = $4 RETURNING *",
+            [first_name, last_name, email, user_id]
+        )
+        .then((result) => result.rows[0]);
+}
+function upsertUserProfile({ user_id, age, city, homepage }) {
+    return db
+        .query(
+            `
+        INSERT INTO user_profiles (user_id, age, city, homepage)
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT (user_id)
+        DO UPDATE SET age = $2, city = $3, homepage = $4`,
+            [(user_id, age ? age : null, city, homepage)]
+        )
+        .then((result) => result.rows[0]);
+}
+
+function deleteSignature(user_id) {}
+
 module.exports = {
     createSignature,
     getSignatures,
@@ -108,4 +148,8 @@ module.exports = {
     createUser,
     getSignaturesByCity,
     createProfile,
+    getUserInfo,
+    updateUser,
+    upsertUserProfile,
+    deleteSignature,
 };

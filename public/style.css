@@ -25,3 +25,7 @@ img {
 canvas {
     border: 3px solid black;
 }
+
+.signatureList {
+    color: blueviolet;
+}

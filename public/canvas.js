@@ -47,3 +47,13 @@ function draw(event) {
         hiddenField.value = canvas.toDataURL();
     }
 }
+
+(function () {
+    document
+        .querySelector("#deletesignature")
+        .addEventListener("submit", function (event) {
+            if (!confirm("Do you really want to?")) {
+                event.preventDefault();
+            }
+        });
+});

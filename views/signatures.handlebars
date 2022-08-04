@@ -1,1 +1,12 @@
-<p> All these people already signed. </p>
+<div class="signatureList">
+    <p>People who share our Opinion:</p>
+    {{#each signatures}}
+        <div>
+            <a href="http://{{homepage}}">{{first_name}} {{last_name}}</a>
+            {{age}}
+            <a href="/signatures/{{city}}">{{city}}</a>
+
+        </div>
+    {{/each}}
+
+</div>
