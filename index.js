@@ -19,8 +19,10 @@ const {
     upsertUserProfile,
     getUserInfo,
     createProfile,
-    deleteSignature
+    deleteSignature,
+    getSignatureByUserId,
 } = require("./db");
+
 const { SESSION_SECRET } = require("./secrets.json");
 const cookieSession = require("cookie-session");
 
@@ -71,11 +73,7 @@ app.post("/", (request, response) => {
 
         return;
     }
-    createSignature(
-        { ...request.body, user_id: request.session.user_id }
-        /*      {}   ...request.params,
-        ...request.query, */
-    )
+    createSignature({ ...request.body, user_id: request.session.user_id })
         .then((newSignature) => {
             console.log("POST /", newSignature);
             request.session.signature_id = newSignature.id;
@@ -136,27 +134,31 @@ app.get("/thank-you", (request, response) => {
     });
 });
 
-/* app.get("/signatures", (request, response) => {
+app.get("/signatures", (request, response) => {
     getSignatures().then((signatures) => {
         response.render("signatures", {
             signatures,
-        }); // do query
+        });
     });
 });
 
 app.get("/signatures/:city", (request, response) => {
-    (foundUser) => {
-        if (!request.session.user_id) {
-            response.redirect("/login");
-            return;
-        }
-        if (!signature) {
-            response.redirect("/");
-            return;
-        }
-        response.render("signaturesByCity", getSignaturesByCity());
-    };
-}); */
+    if (!request.session.user_id) {
+        response.redirect("/login");
+        return;
+    }
+    if (!request.session.signature_id) {
+        response.redirect("/");
+        return;
+    }
+    getSignaturesByCity(request.params.city).then((signatures) => {
+        response.render("signaturesByCity", {
+            title: "Signatures in this City",
+            city: request.params.city,
+            signatures,
+        });
+    });
+});
 
 //LOGIN
 
@@ -175,7 +177,12 @@ app.post("/login", (request, response) => {
                 return;
             }
             request.session.user_id = foundUser.id;
-            response.redirect("/");
+            getSignatureByUserId(foundUser.id).then((signature) => {
+                if (signature) {
+                    request.session.signature_id = signature.id;
+                }
+                response.redirect("/");
+            });
         })
         .catch((error) => {
             console.log("register error", error);
@@ -188,18 +195,20 @@ app.post("/login", (request, response) => {
 //PROFILE
 
 app.post("/profile", (request, response) => {
-    // not sure
     if (!request.session.user_id) {
         response.redirect("/login");
         return;
     }
-    createProfile(request.session.user_id) ///(change)
-        .then(() => {
-            response.redirect("/");
-            return;
-        })
-        .catch(() => {
-            response.render("profile", { error: "couldn't create user" });
+    createProfile({
+        user_id: request.session.user_id,
+        ...request.body,
+    })
+        .then(response.redirect("/"))
+        .catch((error) => {
+            console.log("profile", error);
+            response.render("profile", {
+                error: `Please enter all values`,
+            });
         });
 });
 
@@ -208,6 +217,7 @@ app.get("/profile", (request, response) => {
         response.redirect("/login");
         return;
     }
+
     response.render("profile");
 });
 
@@ -220,7 +230,10 @@ app.get("/profile/edit", (request, response) => {
     }
     const user_id = request.session.user_id;
     getUserInfo(user_id).then((info) => {
-        response.render("editProfile", { user, profile });
+        console.log(info);
+        response.render("editProfile", {
+            ...info,
+        });
     });
 });
 
@@ -229,22 +242,42 @@ app.post("/profile/edit", (request, response) => {
         response.redirect("/login");
         return;
     }
-    updateUser({ user_id: request.session.user_id, ...request.body }).then(
-        (updateUser) => {
-            upsertUserProfile({
-                user_id: request.session.user_id,
-                ...request.body,
-            });
-        }
-    );
+
+    Promise.all([
+        updateUser({ user_id: request.session.user_id, ...request.body }),
+        upsertUserProfile({
+            user_id: request.session.user_id,
+            ...request.body,
+        }),
+    ])
+        .then(() => {
+            response.redirect("/");
+        })
+        .catch((error) => {
+            console.log("error", error);
+            response
+                .status(500)
+                .render("editProfile", { error: "couldn't edit profile" });
+        });
 });
 
-//
+// delete signature
 
 app.post("/deletesignature", (request, response) => {
-    deleteSignature (request.session.signature = null;
-    response.redirect("/");
+    deleteSignature(request.session.user_id)
+        .then(() => {
+            request.session.signature_id = null;
+            response.redirect("/");
+        })
+
+        .catch((error) => {
+            console.log("couldn't delete signature", error);
+        });
 });
+
+// delete profile?
+
+//logout
 
 app.post("/logout", (request, response) => {
     request.session = null;

@@ -51,7 +51,14 @@ function getSignatureById(id) {
         .then((result) => result.rows[0]);
 }
 
+function getSignatureByUserId(user_id) {
+    return db
+        .query("SELECT * FROM signatures WHERE user_id = $1", [user_id])
+        .then((result) => result.rows[0]);
+}
+
 function login({ email, password }) {
+    console.log(email, password);
     return getUserByEmail(email).then((foundUser) => {
         if (!foundUser) {
             console.log("Email not found");
@@ -133,12 +140,20 @@ function upsertUserProfile({ user_id, age, city, homepage }) {
         VALUES ($1, $2, $3, $4)
         ON CONFLICT (user_id)
         DO UPDATE SET age = $2, city = $3, homepage = $4`,
-            [(user_id, age ? age : null, city, homepage)]
+            [user_id, age ? age : null, city, homepage]
         )
         .then((result) => result.rows[0]);
 }
 
-function deleteSignature(user_id) {}
+function deleteSignature(user_id) {
+    return db
+        .query(
+            `
+    DELETE FROM signatures WHERE user_id = $1`,
+            [user_id]
+        )
+        .then((result) => result.rows[0]);
+}
 
 module.exports = {
     createSignature,
@@ -152,4 +167,5 @@ module.exports = {
     updateUser,
     upsertUserProfile,
     deleteSignature,
+    getSignatureByUserId,
 };
