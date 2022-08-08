@@ -145,3 +145,10 @@ label {
     display: block;
     margin-top: 1rem;
 }
+
+input {
+    width: 200px;
+    height: 30px;
+    display: block;
+    margin-bottom: 1rem;
+}
