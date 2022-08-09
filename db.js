@@ -120,7 +120,7 @@ function getUserInfo(user_id) {
         FROM users
         FULL JOIN user_profiles
         ON user_profiles.user_id = users.id
-        WHERE  $1
+        WHERE users.id = $1
         `,
             [user_id]
         )
