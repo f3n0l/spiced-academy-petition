@@ -2,6 +2,9 @@ const spicedPg = require("spiced-pg");
 const bcrypt = require("bcryptjs");
 const DATABASE_NAME = "petition";
 const { DATABASE_USER, DATABASE_PASSWORD } = require("./secrets.json");
+/* const db =
+    process.env.DATABASE_URL ||
+    "postgres://spicedling:password@localhost:5432/petition"; */
 
 const db = spicedPg(
     `postgres:${DATABASE_USER}:${DATABASE_PASSWORD}@localhost:5432/${DATABASE_NAME}`

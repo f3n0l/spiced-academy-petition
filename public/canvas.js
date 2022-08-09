@@ -1,8 +1,8 @@
 const canvas = document.querySelector("#signature");
 const hiddenField = document.querySelector('input[type="hidden"]');
 
-const canvasLeft = canvas.offsetLeft;
-const canvasTop = canvas.offsetTop;
+let canvasLeft = canvas.offsetLeft;
+let canvasTop = canvas.offsetTop;
 
 var isMoving = false;
 

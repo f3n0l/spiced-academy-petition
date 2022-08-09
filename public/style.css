@@ -33,21 +33,27 @@ canvas {
     border: 3px solid #9068fe;
 }
 
+header p {
+    margin-right: 1rem;
+}
+
 header {
     background-color: #9068fe;
     height: 4rem;
-
+    color: white;
     display: flex;
     width: 100%;
     border-radius: 6px;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .guitar {
     object-fit: contain;
     height: 100%;
-    width: 100%;
-    align-self: flex-start;
-    justify-self: flex-start;
+    width: 4rem;
+    /*     align-self: flex-start;
+    justify-self: flex-start; */
 }
 
 .buttonish {
@@ -106,6 +112,11 @@ button:focus {
     border-color: #3700b3;
     background: #6200ee;
 }
+
+#guitarguy {
+    width: 350px;
+    height: 350px;
+}
 /* 
 #deletesignature {
     color: red;
@@ -147,7 +158,7 @@ label {
 }
 
 input {
-    width: 200px;
+    width: 100%;
     height: 30px;
     display: block;
     margin-bottom: 1rem;
